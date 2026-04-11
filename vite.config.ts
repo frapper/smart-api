@@ -11,6 +11,11 @@ export default defineConfig({
         changeOrigin: true,
         secure: true,
       },
+      '/users': {
+        target: 'https://api-framework-dev.azure-api.net',
+        changeOrigin: true,
+        secure: true,
+      },
     },
   },
 })

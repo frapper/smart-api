@@ -6,6 +6,7 @@ import Nav from 'react-bootstrap/Nav'
 import Card from 'react-bootstrap/Card'
 import Button from 'react-bootstrap/Button'
 import Offcanvas from 'react-bootstrap/Offcanvas'
+import Badge from 'react-bootstrap/Badge'
 import useWindowSize from '../hooks/useWindowSize'
 import {
   IoSettingsOutline,
@@ -31,6 +32,12 @@ interface NavigationItem {
   icon: React.ComponentType<{ size?: number; className?: string }>
 }
 
+interface SelectedSchool {
+  id: string
+  name: string
+  identifier: string
+}
+
 const navigationItems: NavigationItem[] = [
   { id: 'settings', label: 'Settings', icon: IoSettingsOutline },
   { id: 'school', label: 'School', icon: IoSchoolOutline },
@@ -42,6 +49,7 @@ const navigationItems: NavigationItem[] = [
 function Navigation() {
   const [activeScreen, setActiveScreen] = useState<ScreenType>('school')
   const [showOffcanvas, setShowOffcanvas] = useState(false)
+  const [selectedSchool, setSelectedSchool] = useState<SelectedSchool | null>(null)
   const windowSize = useWindowSize()
 
   const isMobile = (windowSize.width ?? 0) < 768
@@ -54,19 +62,24 @@ function Navigation() {
   }
 
   const renderScreen = () => {
+    const commonProps = {
+      selectedSchool,
+      onSchoolSelect: setSelectedSchool,
+    }
+
     switch (activeScreen) {
       case 'settings':
-        return <SettingsScreen />
+        return <SettingsScreen {...commonProps} />
       case 'school':
-        return <SchoolScreen />
+        return <SchoolScreen {...commonProps} onNavigateToStudents={() => handleScreenChange('students')} />
       case 'students':
-        return <StudentsScreen />
+        return <StudentsScreen {...commonProps} />
       case 'groups':
-        return <GroupsScreen />
+        return <GroupsScreen {...commonProps} />
       case 'membership':
-        return <MembershipScreen />
+        return <MembershipScreen {...commonProps} />
       default:
-        return <SchoolScreen />
+        return <SchoolScreen {...commonProps} onNavigateToStudents={() => handleScreenChange('students')} />
     }
   }
 
@@ -120,6 +133,16 @@ function Navigation() {
         {/* Main Content Area */}
         <Col xs={12} md={9} lg={10} className={isMobile ? '' : 'd-none d-md-block'}>
           <div className="p-3 p-md-4 p-lg-5">
+            {selectedSchool && (
+              <div className="mb-3 d-flex align-items-center gap-2">
+                <IoSchoolOutline size={20} className="text-primary" />
+                <span className="text-muted">Selected School:</span>
+                <Badge bg="primary" className="fs-6">
+                  {selectedSchool.name}
+                </Badge>
+                <span className="text-muted small">({selectedSchool.identifier})</span>
+              </div>
+            )}
             <Card>
               <Card.Body className="p-3 p-md-4">
                 {renderScreen()}
