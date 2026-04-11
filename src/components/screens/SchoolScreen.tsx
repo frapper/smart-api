@@ -10,6 +10,7 @@ import { organisationsApi } from '../../services/smart-api/organisations'
 import { orgUnitsApi } from '../../services/smart-api/org-units'
 import type { ApiError } from '../../services/smart-api/client/types'
 import type { OrgUnit } from '../../services/smart-api/org-units/types'
+import { useSettings } from '../../contexts/SettingsContext'
 
 interface SelectedSchool {
   id: string
@@ -24,7 +25,12 @@ interface SchoolScreenProps {
 }
 
 function SchoolScreen({ selectedSchool, onSchoolSelect, onNavigateToStudents }: SchoolScreenProps) {
-  const [selectedOrganisation, setSelectedOrganisation] = useState<string>('')
+  const { settings } = useSettings()
+  const [selectedOrganisation, setSelectedOrganisation] = useState<string>(() => {
+    // Load selected organisation from localStorage on initialization
+    const stored = localStorage.getItem('smart-api-selected-organisation')
+    return stored || ''
+  })
   const [organisations, setOrganisations] = useState<
     { id: string; name: string }[] | null
   >(null)
@@ -38,6 +44,15 @@ function SchoolScreen({ selectedSchool, onSchoolSelect, onNavigateToStudents }: 
   const [schoolIdFilter, setSchoolIdFilter] = useState<string>('')
   const [schoolNameFilter, setSchoolNameFilter] = useState<string>('')
   const [filterOperator, setFilterOperator] = useState<'and' | 'or'>('and')
+
+  // Persist selected organisation to localStorage whenever it changes
+  useEffect(() => {
+    if (selectedOrganisation) {
+      localStorage.setItem('smart-api-selected-organisation', selectedOrganisation)
+    } else {
+      localStorage.removeItem('smart-api-selected-organisation')
+    }
+  }, [selectedOrganisation])
 
   useEffect(() => {
     const fetchOrganisations = async () => {
@@ -68,7 +83,8 @@ function SchoolScreen({ selectedSchool, onSchoolSelect, onNavigateToStudents }: 
       setOrgUnitsError(null)
       try {
         const response = await orgUnitsApi.getOrgUnitsByOrganisation(
-          selectedOrganisation
+          selectedOrganisation,
+          settings.pageSize
         )
         setOrgUnits(response.items)
       } catch (err) {
@@ -79,7 +95,7 @@ function SchoolScreen({ selectedSchool, onSchoolSelect, onNavigateToStudents }: 
     }
 
     fetchOrgUnits()
-  }, [selectedOrganisation])
+  }, [selectedOrganisation, settings.pageSize])
 
   const handleSchoolClick = (orgUnit: OrgUnit) => {
     onSchoolSelect({

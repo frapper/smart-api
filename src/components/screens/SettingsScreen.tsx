@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { IoSettingsOutline } from 'react-icons/io5'
+import { useSettings } from '../../contexts/SettingsContext'
 
 interface SelectedSchool {
   id: string
@@ -12,6 +14,26 @@ interface SettingsScreenProps {
 }
 
 function SettingsScreen({ selectedSchool }: SettingsScreenProps) {
+  const { settings, updatePageSize } = useSettings()
+  const [pageSize, setPageSize] = useState(settings.pageSize.toString())
+
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setPageSize(value)
+    const numValue = parseInt(value, 10)
+    if (!isNaN(numValue) && numValue > 0) {
+      updatePageSize(numValue)
+    }
+  }
+
+  const handlePageSizeBlur = () => {
+    // Reset to current setting if invalid
+    const numValue = parseInt(pageSize, 10)
+    if (isNaN(numValue) || numValue <= 0) {
+      setPageSize(settings.pageSize.toString())
+    }
+  }
+
   return (
     <div>
       <div className="d-flex align-items-center gap-2 mb-4">
@@ -28,7 +50,29 @@ function SettingsScreen({ selectedSchool }: SettingsScreenProps) {
 
       <div className="mt-4">
         <h5>Application Settings</h5>
-        <p>Settings configuration will be added here.</p>
+
+        <div className="card">
+          <div className="card-body">
+            <div className="mb-3">
+              <label htmlFor="pageSize" className="form-label">
+                Page Size
+              </label>
+              <input
+                id="pageSize"
+                type="number"
+                className="form-control"
+                value={pageSize}
+                onChange={handlePageSizeChange}
+                onBlur={handlePageSizeBlur}
+                min="1"
+                placeholder="Number of records per page"
+              />
+              <div className="form-text">
+                Number of records to return in API calls (default: 50)
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

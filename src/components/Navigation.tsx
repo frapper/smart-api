@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
@@ -46,15 +46,44 @@ const navigationItems: NavigationItem[] = [
   { id: 'membership', label: 'Membership', icon: IoCardOutline },
 ]
 
+// Screens that require a school to be selected
+const screensRequiringSchool: ScreenType[] = ['students', 'groups', 'membership']
+
+const SCHOOL_STORAGE_KEY = 'smart-api-selected-school'
+
 function Navigation() {
   const [activeScreen, setActiveScreen] = useState<ScreenType>('school')
   const [showOffcanvas, setShowOffcanvas] = useState(false)
-  const [selectedSchool, setSelectedSchool] = useState<SelectedSchool | null>(null)
+  const [selectedSchool, setSelectedSchool] = useState<SelectedSchool | null>(() => {
+    // Load selected school from localStorage on initialization
+    const stored = localStorage.getItem(SCHOOL_STORAGE_KEY)
+    if (stored) {
+      try {
+        return JSON.parse(stored)
+      } catch {
+        return null
+      }
+    }
+    return null
+  })
   const windowSize = useWindowSize()
 
   const isMobile = (windowSize.width ?? 0) < 768
 
+  // Save selected school to localStorage whenever it changes
+  useEffect(() => {
+    if (selectedSchool) {
+      localStorage.setItem(SCHOOL_STORAGE_KEY, JSON.stringify(selectedSchool))
+    } else {
+      localStorage.removeItem(SCHOOL_STORAGE_KEY)
+    }
+  }, [selectedSchool])
+
   const handleScreenChange = (screen: ScreenType) => {
+    // Check if screen requires a school selection
+    if (screensRequiringSchool.includes(screen) && !selectedSchool) {
+      return // Don't allow navigation to school-requiring screens
+    }
     setActiveScreen(screen)
     if (isMobile) {
       setShowOffcanvas(false)
@@ -89,12 +118,20 @@ function Navigation() {
       <Nav variant="pills" className="flex-column">
         {navigationItems.map((item) => {
           const Icon = item.icon
+          const requiresSchool = screensRequiringSchool.includes(item.id)
+          const isDisabled = requiresSchool && !selectedSchool
+
           return (
             <Nav.Item key={item.id} className="mb-2">
               <Nav.Link
                 active={activeScreen === item.id}
+                disabled={isDisabled}
                 onClick={() => handleScreenChange(item.id)}
                 className="d-flex align-items-center gap-2"
+                style={{
+                  opacity: isDisabled ? 0.5 : 1,
+                  cursor: isDisabled ? 'not-allowed' : 'pointer'
+                }}
               >
                 <Icon size={20} />
                 <span>{item.label}</span>
@@ -160,12 +197,20 @@ function Navigation() {
             <Nav variant="pills" className="flex-column">
               {navigationItems.map((item) => {
                 const Icon = item.icon
+                const requiresSchool = screensRequiringSchool.includes(item.id)
+                const isDisabled = requiresSchool && !selectedSchool
+
                 return (
                   <Nav.Item key={item.id} className="mb-2">
                     <Nav.Link
                       active={activeScreen === item.id}
+                      disabled={isDisabled}
                       onClick={() => handleScreenChange(item.id)}
                       className="d-flex align-items-center gap-2"
+                      style={{
+                        opacity: isDisabled ? 0.5 : 1,
+                        cursor: isDisabled ? 'not-allowed' : 'pointer'
+                      }}
                     >
                       <Icon size={20} />
                       <span>{item.label}</span>
