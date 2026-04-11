@@ -68,7 +68,7 @@ function GroupsScreen({ selectedSchool }: GroupsScreenProps) {
       {selectedSchool && (
         <>
           <p className="text-muted">
-            Managing groups for <strong>{selectedSchool.name}</strong>
+            Managing groups for <strong>{selectedSchool.name}</strong> ({selectedSchool.identifier})
           </p>
 
           {loading && (
@@ -117,11 +117,6 @@ function GroupsScreen({ selectedSchool }: GroupsScreenProps) {
               No groups found for this school.
             </Alert>
           )}
-
-          <div className="mt-4">
-            <h5>Group Management</h5>
-            <p>Additional group management features will be added here.</p>
-          </div>
         </>
       )}
     </div>

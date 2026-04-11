@@ -175,9 +175,8 @@ function Navigation() {
                 <IoSchoolOutline size={20} className="text-primary" />
                 <span className="text-muted">Selected School:</span>
                 <Badge bg="primary" className="fs-6">
-                  {selectedSchool.name}
+                  {selectedSchool.name} ({selectedSchool.identifier})
                 </Badge>
-                <span className="text-muted small">({selectedSchool.identifier})</span>
               </div>
             )}
             <Card>
