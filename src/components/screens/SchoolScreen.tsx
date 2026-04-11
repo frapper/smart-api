@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { IoSchoolOutline } from 'react-icons/io5'
 import Form from 'react-bootstrap/Form'
 import Spinner from 'react-bootstrap/Spinner'
@@ -34,6 +34,10 @@ function SchoolScreen({ selectedSchool, onSchoolSelect, onNavigateToStudents }: 
   const [orgUnits, setOrgUnits] = useState<OrgUnit[] | null>(null)
   const [orgUnitsLoading, setOrgUnitsLoading] = useState<boolean>(false)
   const [orgUnitsError, setOrgUnitsError] = useState<ApiError | null>(null)
+
+  const [schoolIdFilter, setSchoolIdFilter] = useState<string>('')
+  const [schoolNameFilter, setSchoolNameFilter] = useState<string>('')
+  const [filterOperator, setFilterOperator] = useState<'and' | 'or'>('and')
 
   useEffect(() => {
     const fetchOrganisations = async () => {
@@ -86,6 +90,21 @@ function SchoolScreen({ selectedSchool, onSchoolSelect, onNavigateToStudents }: 
     onNavigateToStudents()
   }
 
+  const filteredOrgUnits = useMemo(() => {
+    if (!orgUnits) return null
+
+    return orgUnits.filter((orgUnit) => {
+      const matchesId = schoolIdFilter === '' || orgUnit.identifier.toLowerCase().includes(schoolIdFilter.toLowerCase())
+      const matchesName = schoolNameFilter === '' || orgUnit.name.toLowerCase().includes(schoolNameFilter.toLowerCase())
+
+      if (filterOperator === 'and') {
+        return matchesId && matchesName
+      } else {
+        return matchesId || matchesName
+      }
+    })
+  }, [orgUnits, schoolIdFilter, schoolNameFilter, filterOperator])
+
   return (
     <div>
       <div className="d-flex align-items-center gap-2 mb-4">
@@ -110,23 +129,69 @@ function SchoolScreen({ selectedSchool, onSchoolSelect, onNavigateToStudents }: 
       )}
 
       {!loading && !error && (
-        <div className="mb-4">
-          <Form.Label htmlFor="organisationSelect">Organisation</Form.Label>
-          <Form.Select
-            id="organisationSelect"
-            value={selectedOrganisation}
-            onChange={(e) => {
-              setSelectedOrganisation(e.target.value)
-            }}
-          >
-            <option value="">Select an organisation...</option>
-            {organisations?.map((org) => (
-              <option key={org.id} value={org.id}>
-                {org.name}
-              </option>
-            ))}
-          </Form.Select>
-        </div>
+        <>
+          <div className="mb-4">
+            <Form.Label htmlFor="organisationSelect">Organisation</Form.Label>
+            <Form.Select
+              id="organisationSelect"
+              value={selectedOrganisation}
+              onChange={(e) => {
+                setSelectedOrganisation(e.target.value)
+              }}
+            >
+              <option value="">Select an organisation...</option>
+              {organisations?.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name}
+                </option>
+              ))}
+            </Form.Select>
+          </div>
+
+          {orgUnits && orgUnits.length > 0 && (
+            <>
+              <Row className="g-3 mb-3">
+                <Col xs={12} md={6}>
+                  <Form.Label htmlFor="schoolIdFilter">Filter by School ID</Form.Label>
+                  <Form.Control
+                    type="text"
+                    id="schoolIdFilter"
+                    placeholder="Enter school ID..."
+                    value={schoolIdFilter}
+                    onChange={(e) => setSchoolIdFilter(e.target.value)}
+                  />
+                </Col>
+                <Col xs={12} md={6}>
+                  <Form.Label htmlFor="schoolNameFilter">Filter by School Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    id="schoolNameFilter"
+                    placeholder="Enter school name..."
+                    value={schoolNameFilter}
+                    onChange={(e) => setSchoolNameFilter(e.target.value)}
+                  />
+                </Col>
+              </Row>
+              <div className="mb-3">
+                <Form.Label htmlFor="filterOperator">Filter Logic</Form.Label>
+                <Form.Select
+                  id="filterOperator"
+                  value={filterOperator}
+                  onChange={(e) => setFilterOperator(e.target.value as 'and' | 'or')}
+                  style={{ width: '200px' }}
+                >
+                  <option value="and">AND (match both)</option>
+                  <option value="or">OR (match any)</option>
+                </Form.Select>
+                <Form.Text className="text-muted">
+                  {filterOperator === 'and'
+                    ? 'Schools must match both the ID and name filters'
+                    : 'Schools can match either the ID or name filter'}
+                </Form.Text>
+              </div>
+            </>
+          )}
+        </>
       )}
 
       {orgUnitsLoading && (
@@ -147,9 +212,13 @@ function SchoolScreen({ selectedSchool, onSchoolSelect, onNavigateToStudents }: 
         </Alert>
       )}
 
-      {!orgUnitsLoading && !orgUnitsError && orgUnits && orgUnits.length > 0 && (
-        <Row className="g-3">
-          {orgUnits.map((orgUnit) => (
+      {!orgUnitsLoading && !orgUnitsError && filteredOrgUnits && filteredOrgUnits.length > 0 && (
+        <>
+          <p className="text-muted mb-3">
+            Showing <strong>{filteredOrgUnits.length}</strong> of <strong>{orgUnits?.length || 0}</strong> school(s)
+          </p>
+          <Row className="g-3">
+            {filteredOrgUnits.map((orgUnit) => (
             <Col key={orgUnit.id} xs={12} sm={6} md={4} lg={3}>
               <Card
                 className="h-100 clickable-card"
@@ -190,11 +259,14 @@ function SchoolScreen({ selectedSchool, onSchoolSelect, onNavigateToStudents }: 
             </Col>
           ))}
         </Row>
+        </>
       )}
 
-      {!orgUnitsLoading && !orgUnitsError && selectedOrganisation && orgUnits && orgUnits.length === 0 && (
+      {!orgUnitsLoading && !orgUnitsError && selectedOrganisation && filteredOrgUnits && filteredOrgUnits.length === 0 && (
         <Alert variant="info" className="mt-3">
-          No org-units found for this organisation.
+          {schoolIdFilter || schoolNameFilter
+            ? 'No schools match your filters. Try adjusting your search criteria.'
+            : 'No org-units found for this organisation.'}
         </Alert>
       )}
 
