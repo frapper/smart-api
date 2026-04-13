@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 vscode-firefox*
 !.claude/skills/
-!.env
+.env
