@@ -26,4 +26,20 @@ export interface User {
   lastUpdated: string
 }
 
+export interface CreateUserRequest {
+  username: string
+  email: string
+  studentOrEmployeeId: string
+  firstName: string
+  lastName: string
+  gender: string
+  genderId?: string
+  preferredName?: string
+  dateOfBirth?: string
+  enabled?: boolean
+  organisationId: string
+  orgUnitId: string
+  mainRoleId: string
+}
+
 export type GetUsersResponse = PaginatedResponse<User>

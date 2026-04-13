@@ -1,4 +1,5 @@
-import type { GetUsersResponse } from './types'
+import type { GetUsersResponse, CreateUserRequest } from './types'
+import type { User } from './types'
 import { getSmartApiClient } from '../client/axiosClient'
 
 export const usersApi = {
@@ -27,6 +28,16 @@ export const usersApi = {
       }
     )
 
+    return response.data
+  },
+
+  /**
+   * Create a new user/student
+   * POST /users/v4/users
+   */
+  createUser: async (user: CreateUserRequest): Promise<User> => {
+    const client = getSmartApiClient().getInstance()
+    const response = await client.post<User>('/users/v4/users', user)
     return response.data
   },
 }
