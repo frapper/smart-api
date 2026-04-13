@@ -1,4 +1,4 @@
-import type { GetGroupsResponse } from './types'
+import type { GetGroupsResponse, CreateGroupRequest, Group } from './types'
 import { getSmartApiClient } from '../client/axiosClient'
 
 export const groupsApi = {
@@ -28,5 +28,39 @@ export const groupsApi = {
     )
 
     return response.data
+  },
+
+  /**
+   * Create a new group
+   * POST /users/v4/groups
+   */
+  createGroup: async (group: CreateGroupRequest): Promise<Group> => {
+    const client = getSmartApiClient().getInstance()
+
+    const response = await client.post<Group>('/users/v4/groups', group)
+
+    return response.data
+  },
+
+  /**
+   * Update a group
+   * PUT /users/v4/groups/{groupId}
+   */
+  updateGroup: async (groupId: string, group: CreateGroupRequest): Promise<Group> => {
+    const client = getSmartApiClient().getInstance()
+
+    const response = await client.put<Group>(`/users/v4/groups/${groupId}`, group)
+
+    return response.data
+  },
+
+  /**
+   * Delete a group
+   * DELETE /users/v4/groups/{id}
+   */
+  deleteGroup: async (id: string): Promise<void> => {
+    const client = getSmartApiClient().getInstance()
+
+    await client.delete(`/users/v4/groups/${id}`)
   },
 }

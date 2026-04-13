@@ -4,15 +4,21 @@ import type { ReactNode } from 'react';
 
 interface Settings {
   pageSize: number;
+  studentRoleId: string;
+  defaultGroupTypeId: string;
 }
 
 interface SettingsContextType {
   settings: Settings;
   updatePageSize: (pageSize: number) => void;
+  updateStudentRoleId: (studentRoleId: string) => void;
+  updateDefaultGroupTypeId: (defaultGroupTypeId: string) => void;
 }
 
 const DEFAULT_SETTINGS: Settings = {
   pageSize: 50,
+  studentRoleId: '',
+  defaultGroupTypeId: '',
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -43,8 +49,16 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     setSettings(prev => ({ ...prev, pageSize }));
   };
 
+  const updateStudentRoleId = (studentRoleId: string) => {
+    setSettings(prev => ({ ...prev, studentRoleId }));
+  };
+
+  const updateDefaultGroupTypeId = (defaultGroupTypeId: string) => {
+    setSettings(prev => ({ ...prev, defaultGroupTypeId }));
+  };
+
   return (
-    <SettingsContext.Provider value={{ settings, updatePageSize }}>
+    <SettingsContext.Provider value={{ settings, updatePageSize, updateStudentRoleId, updateDefaultGroupTypeId }}>
       {children}
     </SettingsContext.Provider>
   );

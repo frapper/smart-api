@@ -13,4 +13,14 @@ export interface Group {
   lastUpdated: string
 }
 
+export interface CreateGroupRequest {
+  identifier: string
+  name: string
+  description: string
+  enabled: boolean
+  groupTypeId: string
+  organisationId: string
+  orgUnitId: string
+}
+
 export type GetGroupsResponse = PaginatedResponse<Group>
